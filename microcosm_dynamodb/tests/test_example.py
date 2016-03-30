@@ -13,7 +13,6 @@ from hamcrest import (
 
 from microcosm.api import create_object_graph
 from microcosm_dynamodb.errors import (
-    DuplicateModelError,
     ModelNotFoundError,
 )
 from microcosm_dynamodb.example import Company

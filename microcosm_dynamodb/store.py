@@ -11,6 +11,9 @@ from microcosm_dynamodb.errors import (
 from microcosm_dynamodb.identifiers import new_object_id
 
 
+TEST_TABLE_PREFIX = "test_"
+
+
 class Store(object):
 
     def __init__(self, graph, model_class):
@@ -20,7 +23,7 @@ class Store(object):
         # short cuts while still having an abstraction layer we can replace.
         self.model_class.store = self
         # Each model must be registered with the engine exactly once.
-        self.graph.dynamodb.register(self.model_class)
+        self._register()
 
     @property
     def engine(self):
@@ -158,3 +161,12 @@ class Store(object):
         ).filter(
             *criterion
         )
+
+    def _register(self):
+        if self.graph.metadata.testing:
+            if not self.model_class.meta_.name.startswith(TEST_TABLE_PREFIX):
+                self.model_class.meta_.name = "{}{}".format(
+                    TEST_TABLE_PREFIX,
+                    self.model_class.meta_.name,
+                )
+        self.graph.dynamodb.register(self.model_class)
