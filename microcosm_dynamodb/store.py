@@ -17,6 +17,10 @@ class Store(object):
         # short cuts while still having an abstraction layer we can replace.
         self.model_class.store = self
 
+    @property
+    def engine(self):
+        return self.graph.dynamodb
+
     def new_object_id(self):
         """
         Injectable id generation to facilitate mocking.
@@ -31,7 +35,7 @@ class Store(object):
         """
         if instance.id is None:
             instance.id = self.new_object_id()
-        self.session.add(instance)
+        self.engine.save(instance)
         return instance
 
     def retrieve(self, identifier, *criterion):
@@ -53,9 +57,8 @@ class Store(object):
         :raises `ModelNotFoundError` if there is no existing model
 
         """
-        with self.flushing():
-            instance = self.retrieve(identifier)
-            self.session.merge(new_instance)
+        instance = self.retrieve(identifier)
+        self.engine.merge(new_instance)
         return instance
 
     def replace(self, identifier, new_instance):
@@ -120,8 +123,7 @@ class Store(object):
         :raises `ResourceNotFound` if the row cannot be deleted.
 
         """
-        with self.flushing():
-            count = self._query(*criterion).delete()
+        count = self._query(*criterion).delete()
         if count == 0:
             raise ModelNotFoundError
         return True
