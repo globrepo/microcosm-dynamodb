@@ -17,6 +17,7 @@ from microcosm_dynamodb.errors import (
     ModelNotFoundError,
 )
 from microcosm_dynamodb.example import Company
+from microcosm_dynamodb.operations import recreate_all
 
 
 class TestCompany(object):
@@ -24,6 +25,8 @@ class TestCompany(object):
     def setup(self):
         self.graph = create_object_graph(name="example", testing=True, import_name="microcosm_dynamodb")
         self.company_store = self.graph.company_store
+
+        recreate_all(self.graph)
 
     def test_create_retrieve_company(self):
         """
@@ -34,16 +37,6 @@ class TestCompany(object):
 
         retrieved_company = Company.retrieve(company.id)
         assert_that(retrieved_company.name, is_(equal_to("name")))
-
-    def test_create_duplicate_company(self):
-        """
-        Should not be able to retrieve a company with a duplicate name.
-
-        """
-        Company(name="name").create()
-
-        company = Company(name="name")
-        assert_that(calling(company.create), raises(DuplicateModelError))
 
     def test_create_delete_company(self):
         """
@@ -79,14 +72,3 @@ class TestCompany(object):
 
         retrieved_company = Company.retrieve(company.id)
         assert_that(retrieved_company.name, is_(equal_to("new_name")))
-
-    def test_create_update_duplicate_company(self):
-        """
-        Should be not able to update a company to a duplicate name.
-
-        """
-        Company(name="name1").create()
-        company = Company(name="name2").create()
-
-        company.name = "name1"
-        assert_that(calling(company.update), raises(DuplicateModelError))

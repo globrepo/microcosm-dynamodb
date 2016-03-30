@@ -4,10 +4,9 @@ Factory that configures flywheel DynamoDB ORM-like framework.
 """
 from flywheel import Engine
 
-from microcosm.api import binding, defaults
+from microcosm.api import defaults
 
 
-@binding("dynamodb")
 @defaults(
     region="us-west-2",
 )

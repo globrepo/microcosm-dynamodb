@@ -2,13 +2,14 @@
 Example models and store usage.
 
 """
-from flywheel import Field, Model
+from flywheel import Field
 
 from microcosm.api import binding
+from microcosm_dynamodb.models import EntityMixin, Model
 from microcosm_dynamodb.store import Store
 
 
-class Company(Model):
+class Company(EntityMixin, Model):
     """
     A company has a name.
 
@@ -21,7 +22,7 @@ class CompanyStore(Store):
     pass
 
 
-class Employee(Model):
+class Employee(EntityMixin, Model):
     """
     A employee has a name and associated company.
 

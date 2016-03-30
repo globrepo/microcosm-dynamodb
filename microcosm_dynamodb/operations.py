@@ -9,7 +9,7 @@ def create_all(graph):
     Create all database tables.
 
     """
-    graph.dynamodb.create_schema(test=graph.config.testing)
+    graph.dynamodb.create_schema()
 
 
 def drop_all(graph):
@@ -17,7 +17,7 @@ def drop_all(graph):
     Drop all database tables.
 
     """
-    graph.dynamodb.delete_schema(test=graph.config.testing)
+    graph.dynamodb.delete_schema()
 
 
 def recreate_all(graph):

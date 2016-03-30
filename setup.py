@@ -27,6 +27,7 @@ setup(
     ],
     entry_points={
         "microcosm.factories": [
+            "dynamodb = microcosm_dynamodb.factories:configure_flywheel_engine",
         ],
     },
     tests_require=[
