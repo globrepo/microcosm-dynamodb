@@ -163,10 +163,4 @@ class Store(object):
         )
 
     def _register(self):
-        if self.graph.metadata.testing:
-            if not self.model_class.meta_.name.startswith(TEST_TABLE_PREFIX):
-                self.model_class.meta_.name = "{}{}".format(
-                    TEST_TABLE_PREFIX,
-                    self.model_class.meta_.name,
-                )
         self.graph.dynamodb.register(self.model_class)
