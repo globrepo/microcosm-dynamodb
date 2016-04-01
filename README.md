@@ -12,7 +12,6 @@ This project includes example models and persistence stores. Assuming the testin
 database exists (see below), the following demonstrates basic usage:
 
     from microcosm.api import create_object_graph
-    from microcosm_dynamodb.context import SessionContext
     from microcosm_dynamodb.example import Company
 
     # create the object graph
@@ -21,17 +20,11 @@ database exists (see below), the following demonstrates basic usage:
     # wire up the persistence layer to the (testing) database
     [company_store] = graph.use("company_store")
 
-    # set up a session
-    with SessionContext(graph) as context:
+    # create a model
+    company = company_store.create(Company(name="Acme"))
 
-        # drop and create database tables; *only* do this for testing
-        context.recreate_all()
-
-        # create a model
-        company = company_store.create(Company(name="Acme"))
-
-        # prints 1
-        print company_store.count()
+    # prints 1
+    print company_store.count()
 
 
 ## Convention
@@ -40,7 +33,6 @@ Models:
 
  -  Persistent models use a `flywheel` declarative base class
  -  Persistent operations pass through a unifying `Store` layer
- -  Persistent operations favor explicit queries and deletes over automatic relations and cascades
 
 
 ## Configuration
@@ -52,4 +44,8 @@ To change the database region:
 
 ## Test Setup
 
-TODO: Write
+Tests (and automated builds) act as the "example" microservice and will by default use a dedicated namespace, prefixing all created Table names with 'test'.
+
+To run all tests that do not involve actually hitting AWS APIs, you can exclude tests using the 'aws' tag:
+
+    nosetests -a '!aws'

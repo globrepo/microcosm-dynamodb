@@ -2,10 +2,16 @@
 Abstraction layer for persistence operations.
 
 """
+from operator import add
+import logging
+
 from microcosm_dynamodb.errors import (
     ModelNotFoundError,
 )
 from microcosm_dynamodb.identifiers import new_object_id
+
+
+TEST_TABLE_PREFIX = "test_"
 
 
 class Store(object):
@@ -16,6 +22,12 @@ class Store(object):
         # Give the model class a backref to allow model-oriented CRUD
         # short cuts while still having an abstraction layer we can replace.
         self.model_class.store = self
+        # Each model must be registered with the engine exactly once.
+        self._register()
+
+    @property
+    def engine(self):
+        return self.graph.dynamodb
 
     def new_object_id(self):
         """
@@ -31,7 +43,7 @@ class Store(object):
         """
         if instance.id is None:
             instance.id = self.new_object_id()
-        self.session.add(instance)
+        self.engine.save(instance)
         return instance
 
     def retrieve(self, identifier, *criterion):
@@ -53,10 +65,14 @@ class Store(object):
         :raises `ModelNotFoundError` if there is no existing model
 
         """
-        with self.flushing():
-            instance = self.retrieve(identifier)
-            self.session.merge(new_instance)
-        return instance
+        instance = self.engine.get(self.model_class, id=identifier)
+        if not instance:
+            raise ModelNotFoundError()
+
+        new_instance.id = identifier
+        new_instance.sync()
+
+        return new_instance
 
     def replace(self, identifier, new_instance):
         """
@@ -82,7 +98,13 @@ class Store(object):
         Count the number of models matching some criterion.
 
         """
-        return self._query(*criterion).count()
+        if not criterion:
+            logging.warning(
+                "count() - DynamoDB Table scans are extremely slow, avoid counting without filters when possible."
+            )
+            return reduce(add, (1 for item in self.engine.scan(self.model_class).gen()), 0)
+        else:
+            return self._query(*criterion).count()
 
     def search(self, *criterion, **kwargs):
         """
@@ -91,7 +113,11 @@ class Store(object):
         :param offset: pagination offset, if any
         :param limit: pagination limit, if any
         """
-        query = self._query(*criterion)
+        if criterion:
+            query = self._query(*criterion)
+        else:
+            query = self.engine.scan(self.model_class)
+
         offset, limit = kwargs.get("offset"), kwargs.get("limit")
         if offset is not None:
             query = query.offset(offset)
@@ -120,8 +146,7 @@ class Store(object):
         :raises `ResourceNotFound` if the row cannot be deleted.
 
         """
-        with self.flushing():
-            count = self._query(*criterion).delete()
+        count = self._query(*criterion).delete()
         if count == 0:
             raise ModelNotFoundError
         return True
@@ -131,8 +156,11 @@ class Store(object):
         Construct a query for the model.
 
         """
-        return self.session.query(
+        return self.engine.query(
             self.model_class
         ).filter(
             *criterion
         )
+
+    def _register(self):
+        self.graph.dynamodb.register(self.model_class)

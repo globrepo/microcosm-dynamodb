@@ -10,4 +10,4 @@ def new_object_id():
     Use randomized UUIDs by default.
 
     """
-    return uuid4()
+    return str(uuid4())

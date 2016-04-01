@@ -1,9 +1,9 @@
 """
-Simple Postgres health check.
+Simple dynamodb health check.
 
 """
-from microcosm_postgres.context import SessionContext
 
 
 def check_health(graph):
-    SessionContext.session.execute("SELECT 1;")
+    # TODO: Is there a basic service health check to perform here akin to 'SELECT 1;' ?
+    pass

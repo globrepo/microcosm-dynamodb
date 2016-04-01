@@ -17,6 +17,7 @@ setup(
     keywords="microcosm",
     install_requires=[
         "boto3>=1.3.0",
+        "flywheel>=0.4.8",
         "microcosm>=0.4.0",
     ],
     setup_requires=[
@@ -26,7 +27,7 @@ setup(
     ],
     entry_points={
         "microcosm.factories": [
-            "sessionmaker = microcosm_dynamodb.factories:configure_dynamodb_sessionmaker",
+            "dynamodb = microcosm_dynamodb.factories:configure_flywheel_engine",
         ],
     },
     tests_require=[
