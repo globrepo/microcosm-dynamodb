@@ -20,30 +20,6 @@ class ModelIntegrityError(Exception):
         return 500
 
 
-class DuplicateModelError(ModelIntegrityError):
-    """
-    An attempt to create or update a module violated a uniqueness constraint.
-
-    Unlike `ModelIntegrityError`, duplicates are often expected behavior.
-
-    """
-    @property
-    def status_code(self):
-        # conflict
-        return 409
-
-
-class ReferencedModelError(ModelIntegrityError):
-    """
-    An attempt to delete a model didn't first delete references.
-
-    """
-    @property
-    def status_code(self):
-        # forbidden
-        return 403
-
-
 class ModelNotFoundError(Exception):
     """
     The queried or updated model did not exist.
