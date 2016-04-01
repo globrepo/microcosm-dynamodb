@@ -10,6 +10,7 @@ from hamcrest import (
     is_,
     raises,
 )
+from nose.plugins.attrib import attr
 
 from microcosm.api import create_object_graph
 from microcosm_dynamodb.errors import (
@@ -19,6 +20,7 @@ from microcosm_dynamodb.example import Company
 from microcosm_dynamodb.operations import recreate_all
 
 
+@attr('aws')
 class TestCompany(object):
 
     def setup(self):
