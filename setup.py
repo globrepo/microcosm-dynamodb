@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 project = "microcosm-dynamodb"
-version = "0.1.0"
+version = "0.2.0"
 
 setup(
     name=project,
@@ -16,9 +16,9 @@ setup(
     zip_safe=False,
     keywords="microcosm",
     install_requires=[
-        "boto3>=1.3.0",
+        "boto3>=1.3.1",
         "flywheel>=0.4.8",
-        "microcosm>=0.4.0",
+        "microcosm>=0.8.0",
     ],
     setup_requires=[
         "nose>=1.3.6",
