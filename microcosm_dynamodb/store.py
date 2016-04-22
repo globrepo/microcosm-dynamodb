@@ -93,24 +93,25 @@ class Store(object):
         """
         return self._delete(self.model_class.id == identifier)
 
-    def count(self, *criterion):
+    def count(self, *criterion, **kwargs):
         """
         Count the number of models matching some criterion.
 
         """
-        if not criterion:
+        if not (criterion or kwargs):
             logging.warning(
                 "count() - DynamoDB Table scans are extremely slow, avoid counting without filters when possible."
             )
             return reduce(add, (1 for item in self.engine.scan(self.model_class).gen()), 0)
         else:
-            return self._query(*criterion).count()
+            query = self._query(*criterion)
+            query = self._filter(query, **kwargs)
+            return query.count()
 
     def search(self, *criterion, **kwargs):
         """
         Return the list of models matching some criterion.
 
-        :param offset: pagination offset, if any
         :param limit: pagination limit, if any
         """
         if criterion:
@@ -118,10 +119,33 @@ class Store(object):
         else:
             query = self.engine.scan(self.model_class)
 
+        query = self._filter(query, **kwargs)
+        query = self._order_by(query, **kwargs)
+        return query.all()
+
+    def _order_by(self, query, **kwargs):
+        """
+        Add an order by clause to a (search) query. For DynamoDB, using flywheel,
+        we can support ordering using a an index, e.g updating query with:
+
+        >>> query = query.index('timestamp-index')
+
+        By default, is a noop.
+
+        """
+        return query
+
+    def _filter(self, query, **kwargs):
+        """
+        Filter a query with user-supplied arguments.
+
+        :param limit: pagination limit, if any
+
+        """
         limit = kwargs.get("limit")
         if limit is not None:
             query = query.limit(limit)
-        return query.all()
+        return query
 
     def _retrieve(self, *criterion):
         """
