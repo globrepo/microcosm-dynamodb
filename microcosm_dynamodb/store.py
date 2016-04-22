@@ -3,6 +3,7 @@ Abstraction layer for persistence operations.
 
 """
 from operator import add
+from uuid import UUID
 import logging
 
 from microcosm_dynamodb.errors import (
@@ -43,6 +44,13 @@ class Store(object):
         """
         if instance.id is None:
             instance.id = self.new_object_id()
+
+        # XXX flywheel does not currently play nice with uuid.UUID types.
+        # microcosm-flask automatically converts ids from URLs to UUID,
+        # and so this is required for now as a bridge.
+        if isinstance(instance.id, UUID):
+            instance.id = str(instance.id)
+
         self.engine.save(instance)
         return instance
 
@@ -65,14 +73,33 @@ class Store(object):
         :raises `ModelNotFoundError` if there is no existing model
 
         """
+        # XXX flywheel does not currently play nice with uuid.UUID types.
+        # microcosm-flask automatically converts ids from URLs to UUID,
+        # and so this is required for now as a bridge.
+        if isinstance(identifier, UUID):
+            identifier = str(identifier)
+
         instance = self.engine.get(self.model_class, id=identifier)
         if not instance:
             raise ModelNotFoundError()
 
-        new_instance.id = identifier
-        new_instance.sync()
+        new_instance = self._merge(instance, from_=new_instance)
+        self.engine.sync(new_instance)
 
         return new_instance
+
+    def _merge(self, to, from_):
+        """
+        Merge a flywheel.Model instance into another one.
+        This uses flywheel's __dirty__ set which tracks any fields
+        which have unsaved modifications.
+
+        """
+        assert type(to) == type(from_)
+
+        for field_name in from_.__dirty__:
+            setattr(to, field_name, getattr(from_, field_name))
+        return to
 
     def replace(self, identifier, new_instance):
         """

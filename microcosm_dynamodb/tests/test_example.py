@@ -65,10 +65,10 @@ class TestCompany(object):
         Should be able to search companies with a limit after creation.
 
         """
-        company1 = Company(name="name1").create()
+        Company(name="name1").create()
         Company(name="name2").create()
 
-        assert_that([company.id for company in Company.search(limit=1)], is_(equal_to([company1.id])))
+        assert_that(len(list(company for company in Company.search(limit=1))), is_(equal_to(1)))
 
     def test_create_update_company(self):
         """
