@@ -60,6 +60,16 @@ class TestCompany(object):
         assert_that(Company.count(), is_(equal_to(2)))
         assert_that([company.id for company in Company.search()], contains_inanyorder(company1.id, company2.id))
 
+    def test_create_search_limit_company(self):
+        """
+        Should be able to search companies with a limit after creation.
+
+        """
+        company1 = Company(name="name1").create()
+        Company(name="name2").create()
+
+        assert_that([company.id for company in Company.search(limit=1)], is_(equal_to([company1.id])))
+
     def test_create_update_company(self):
         """
         Should be able to update a company after creating it.

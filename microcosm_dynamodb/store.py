@@ -118,9 +118,7 @@ class Store(object):
         else:
             query = self.engine.scan(self.model_class)
 
-        offset, limit = kwargs.get("offset"), kwargs.get("limit")
-        if offset is not None:
-            query = query.offset(offset)
+        limit = kwargs.get("limit")
         if limit is not None:
             query = query.limit(limit)
         return query.all()
