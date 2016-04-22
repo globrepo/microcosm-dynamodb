@@ -4,7 +4,25 @@ Support for building models.
 Every model must inherit from `Model` and should inherit from the `EntityMixin`.
 
 """
-from flywheel import Model  # noqa
+from uuid import UUID
+
+from flywheel import Field, Model as BaseModel
+
+
+class Model(BaseModel):
+
+    # XXX We do not strictly need to have a default id field, however flywheel enforces
+    # us to have one via the metaclass. We need this baseclass to perform the UUID to string
+    # conversion below and so we add this default which can be over-ridden by derived classes.
+    id = Field(hash_key=True)
+
+    def __init__(self, **kwargs):
+        # XXX flywheel does not currently play nice with uuid.UUID types.
+        # microcosm-flask automatically converts ids from URLs to UUID,
+        # and so this is required for now as a bridge.
+        if 'id' in kwargs and isinstance(kwargs['id'], UUID):
+            kwargs['id'] = str(kwargs['id'])
+        super(Model, self).__init__(**kwargs)
 
 
 class IdentityMixin(object):
