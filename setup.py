@@ -18,7 +18,7 @@ setup(
     install_requires=[
         "boto3>=1.3.1",
         "flywheel>=0.4.8",
-        "microcosm>=0.8.0",
+        "microcosm>=0.9.0",
     ],
     setup_requires=[
         "nose>=1.3.6",
