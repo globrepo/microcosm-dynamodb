@@ -2,7 +2,6 @@
 Abstraction layer for persistence operations.
 
 """
-from operator import add
 from uuid import UUID
 import logging
 
@@ -129,7 +128,7 @@ class Store(object):
             logging.warning(
                 "count() - DynamoDB Table scans are extremely slow, avoid counting without filters when possible."
             )
-            return reduce(add, (1 for item in self.engine.scan(self.model_class).gen()), 0)
+            return sum(1 for item in self.engine.scan(self.model_class).gen())
         else:
             query = self._query(*criterion)
             query = self._filter(query, **kwargs)
