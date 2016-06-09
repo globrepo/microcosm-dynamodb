@@ -2,13 +2,15 @@
 Factory that configures flywheel DynamoDB ORM-like framework.
 
 """
+from os import environ
+
 from flywheel import Engine
 
 from microcosm.api import defaults
 
 
 @defaults(
-    region="us-west-2",
+    region=environ.get('AWS_REGION'),
 )
 def configure_flywheel_engine(graph):
     """
