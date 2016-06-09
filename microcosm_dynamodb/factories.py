@@ -8,7 +8,7 @@ from microcosm.api import defaults
 
 
 @defaults(
-    region="us-west-2",
+    region=None,
 )
 def configure_flywheel_engine(graph):
     """
