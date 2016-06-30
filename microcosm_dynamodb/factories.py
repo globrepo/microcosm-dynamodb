@@ -10,6 +10,7 @@ from microcosm.api import defaults
 
 
 @defaults(
+    namespace=None,
     region=environ.get("AWS_DEFAULT_REGION"),
 )
 def configure_flywheel_engine(graph):
@@ -17,7 +18,7 @@ def configure_flywheel_engine(graph):
     Create the flywheel engine.
 
     """
-    namespace = ()
+    namespace = graph.config.dynamodb.namespace or ()
     if graph.metadata.testing:
         namespace = "test"
 
