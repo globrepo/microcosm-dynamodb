@@ -20,7 +20,7 @@ def configure_flywheel_engine(graph):
     """
     namespace = graph.config.dynamodb.namespace
     if graph.metadata.testing:
-        namespace = "test:"
+        namespace = "test-"
 
     engine = Engine(namespace=namespace)
     engine.connect_to_region(graph.config.dynamodb.region)
