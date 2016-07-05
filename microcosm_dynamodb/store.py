@@ -110,14 +110,17 @@ class Store(object):
         except ModelNotFoundError:
             return self.create(new_instance)
 
-    def delete(self, identifier):
+    def delete(self, identifier, *criterion):
         """
-        Delete a model by primary key.
+        Delete a model by primary key and optional additional criteria.
 
         :raises `ModelNotFoundError` if the row cannot be deleted.
 
         """
-        return self._delete(self.model_class.id == identifier)
+        return self._delete(
+            self.model_class.id == identifier,
+            *criterion
+        )
 
     def count(self, *criterion, **kwargs):
         """
