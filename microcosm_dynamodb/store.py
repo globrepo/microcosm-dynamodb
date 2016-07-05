@@ -65,50 +65,40 @@ class Store(object):
             *criterion
         )
 
-    def update(self, identifier, new_instance):
+    def update(self, identifiers, new_instance):
         """
         Update an existing model with a new one.
 
+        :param identifiers - the (string) id or dictionary of named primary keys
+            to use for fetching original row.
+        :param new_instance - the model instance to use for updating existing row with
+        :returns the updated instance
         :raises `ModelNotFoundError` if there is no existing model
 
         """
-        # XXX flywheel does not currently play nice with uuid.UUID types.
-        # microcosm-flask automatically converts ids from URLs to UUID,
-        # and so this is required for now as a bridge.
-        if isinstance(identifier, UUID):
-            identifier = str(identifier)
-
-        instance = self.engine.get(self.model_class, id=identifier)
-        if not instance:
-            raise ModelNotFoundError()
-
+        instance = self._get(identifiers)
         new_instance = self._merge(instance, from_=new_instance)
         self.engine.sync(new_instance)
 
         return new_instance
 
-    def _merge(self, to, from_):
-        """
-        Merge a flywheel.Model instance into another one.
-        This uses flywheel's __dirty__ set which tracks any fields
-        which have unsaved modifications.
-
-        """
-        assert type(to) == type(from_)
-
-        for field_name in from_.__dirty__:
-            setattr(to, field_name, getattr(from_, field_name))
-        return to
-
-    def replace(self, identifier, new_instance):
+    def replace(self, identifiers, new_instance):
         """
         Create or update a model.
 
+        :param identifiers - the (string) id or dictionary of named primary keys
+            to use for fetching original row.
+        :param new_instance - the model instance to replace existing row with
+        :returns the replaced instance
+
         """
         try:
-            return self.update(identifier, new_instance)
+            self._get(identifiers)
         except ModelNotFoundError:
             return self.create(new_instance)
+        else:
+            self.engine.sync(new_instance, raise_on_conflict=False)
+            return new_instance
 
     def delete(self, identifier, *criterion):
         """
@@ -176,6 +166,33 @@ class Store(object):
             query = query.limit(limit)
         return query
 
+    def _get(self, identifiers):
+        """
+        Get a single instance based on its primary keys.
+
+        :param identifiers - primary string id of dictionary of named primary keys
+        :returns instance if found
+        :raises ModelNotFoundError if no instance is found
+
+        """
+        # XXX flywheel does not currently play nice with uuid.UUID types.
+        # microcosm-flask automatically converts ids from URLs to UUID,
+        # and so this is required for now as a bridge.
+        if isinstance(identifiers, UUID):
+            identifiers = str(identifiers)
+
+        if isinstance(identifiers, basestring):
+            # If given as single id, convert to named argument using default 'id' fieldname
+            identifiers = dict(
+                id=identifiers,
+            )
+
+        instance = self.engine.get(self.model_class, **identifiers)
+        if not instance:
+            raise ModelNotFoundError()
+
+        return instance
+
     def _retrieve(self, *criterion):
         """
         Retrieve a model by some criteria.
@@ -201,6 +218,19 @@ class Store(object):
         if count == 0:
             raise ModelNotFoundError
         return True
+
+    def _merge(self, to, from_):
+        """
+        Merge a flywheel.Model instance into another one.
+        This uses flywheel's __dirty__ set which tracks any fields
+        which have unsaved modifications.
+
+        """
+        assert type(to) == type(from_)
+
+        for field_name in from_.__dirty__:
+            setattr(to, field_name, getattr(from_, field_name))
+        return to
 
     def _query(self, *criterion):
         """
