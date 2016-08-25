@@ -17,5 +17,6 @@ def test_configure_flywheel_engine():
     Should create the `flywheel` engine
 
     """
-    graph = create_object_graph(name="example", testing=True, import_name="microcosm_dynamodb")
+    # don't enable testing because we want a non-mock engine
+    graph = create_object_graph(name="example", import_name="microcosm_dynamodb")
     assert_that(graph.dynamodb, is_(instance_of(Engine)))

@@ -2,18 +2,13 @@
 Abstraction layer for persistence operations.
 
 """
-from uuid import UUID
-import logging
+from microcosm_logging.decorators import logger
 
-from microcosm_dynamodb.errors import (
-    ModelNotFoundError,
-)
-from microcosm_dynamodb.identifiers import new_object_id
+from microcosm_dynamodb.errors import ModelNotFoundError
+from microcosm_dynamodb.identifiers import new_object_id, normalize_id
 
 
-TEST_TABLE_PREFIX = "test_"
-
-
+@logger
 class Store(object):
 
     def __init__(self, graph, model_class):
@@ -29,27 +24,12 @@ class Store(object):
     def engine(self):
         return self.graph.dynamodb
 
-    def new_object_id(self):
-        """
-        Injectable id generation to facilitate mocking.
-
-        """
-        return new_object_id()
-
     def create(self, instance):
         """
         Create a new model instance.
 
         """
-        if instance.id is None:
-            instance.id = self.new_object_id()
-
-        # XXX flywheel does not currently play nice with uuid.UUID types.
-        # microcosm-flask automatically converts ids from URLs to UUID,
-        # and so this is required for now as a bridge.
-        if isinstance(instance.id, UUID):
-            instance.id = str(instance.id)
-
+        self.maybe_assign_id(instance)
         self.engine.save(instance)
         return instance
 
@@ -57,7 +37,7 @@ class Store(object):
         """
         Retrieve a model by primary key and zero or more other criteria.
 
-        :raises `NotFound` if there is no existing model
+        :raises `ModelNotFoundError` if there is no existing model
 
         """
         return self._retrieve(
@@ -79,7 +59,6 @@ class Store(object):
         instance = self._get(identifiers)
         new_instance = self._merge(instance, from_=new_instance)
         self.engine.sync(new_instance)
-
         return new_instance
 
     def replace(self, identifiers, new_instance):
@@ -118,7 +97,7 @@ class Store(object):
 
         """
         if not (criterion or kwargs):
-            logging.warning(
+            self.logger.warning(
                 "count() - DynamoDB Table scans are extremely slow, avoid counting without filters when possible."
             )
             return sum(1 for item in self.engine.scan(self.model_class).gen())
@@ -132,6 +111,7 @@ class Store(object):
         Return the list of models matching some criterion.
 
         :param limit: pagination limit, if any
+
         """
         if criterion:
             query = self._query(*criterion)
@@ -175,11 +155,7 @@ class Store(object):
         :raises ModelNotFoundError if no instance is found
 
         """
-        # XXX flywheel does not currently play nice with uuid.UUID types.
-        # microcosm-flask automatically converts ids from URLs to UUID,
-        # and so this is required for now as a bridge.
-        if isinstance(identifiers, UUID):
-            identifiers = str(identifiers)
+        identifiers = normalize_id(identifiers)
 
         if isinstance(identifiers, basestring):
             # If given as single id, convert to named argument using default 'id' fieldname
@@ -242,6 +218,19 @@ class Store(object):
         ).filter(
             *criterion
         )
+
+    def new_object_id(self):
+        """
+        Injectable id generation to facilitate mocking.
+
+        """
+        return new_object_id()
+
+    def maybe_assign_id(self, instance):
+        if instance.id is None:
+            instance.id = self.new_object_id()
+        else:
+            instance.id = normalize_id(instance.id)
 
     def _register(self):
         self.graph.dynamodb.register(self.model_class)
