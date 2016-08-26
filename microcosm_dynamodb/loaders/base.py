@@ -87,13 +87,23 @@ class DynamoDBLoader(object):
         Query all service config rows.
 
         """
+        field_names = [
+            "#k" if field == "key" else field
+            for field in self.value_type._fields
+        ]
+
+        attribute_names = {
+            "#n": "name",
+        }
+
+        if "#k" in field_names:
+            attribute_names["#k"] = "key"
+
         return self._table(service).scan(
             Select="SPECIFIC_ATTRIBUTES",
-            ProjectionExpression=", ".join(["#n"] + list(self.value_type._fields)),
+            ProjectionExpression=", ".join(["#n"] + field_names),
             ConsistentRead=True,
-            ExpressionAttributeNames={
-                "#n": "name",
-            },
+            ExpressionAttributeNames=attribute_names,
         )
 
     def items(self, service):

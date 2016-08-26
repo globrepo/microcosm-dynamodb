@@ -19,7 +19,8 @@ from Crypto.Util import Counter
 from microcosm_dynamodb.loaders.base import DynamoDBLoader
 
 
-EncryptedValue = namedtuple("EncryptedValue", ["cyphertext_key", "cyphertext", "cyphertext_hmac"])
+# match credstash key names
+EncryptedValue = namedtuple("EncryptedValue", ["key", "contents", "hmac"])
 
 
 class EncryptedDynamoDBLoader(DynamoDBLoader):
@@ -62,21 +63,21 @@ class EncryptedDynamoDBLoader(DynamoDBLoader):
 
         # Check the HMAC before we decrypt to verify ciphertext integrity
         kms_response = kms.decrypt(
-            CiphertextBlob=b64decode(value.cyphertext_key),
+            CiphertextBlob=b64decode(value.key),
             EncryptionContext=context,
         )
         key = kms_response['Plaintext'][:32]
         hmac_key = kms_response['Plaintext'][32:]
         hmac = HMAC(
             hmac_key,
-            msg=b64decode(value.cyphertext),
+            msg=b64decode(value.contents),
             digestmod=SHA256,
         )
-        if hmac.hexdigest() != value.cyphertext_hmac:
+        if hmac.hexdigest() != value.hmac:
             raise Exception("Computed HMAC does not match stored HMAC")
         dec_ctr = Counter.new(128)
         decryptor = AES.new(key, AES.MODE_CTR, counter=dec_ctr)
-        plaintext = decryptor.decrypt(b64decode(value.cyphertext)).decode("utf-8")
+        plaintext = decryptor.decrypt(b64decode(value.contents)).decode("utf-8")
         return plaintext
 
     def encrypt(self, plaintext, context=None):
