@@ -30,6 +30,7 @@ setup(
         "flywheel>=0.5.0",
         "microcosm>=0.11.0",
         "microcosm-logging>-0.9.3",
+        "PyCrypto>=2.6.1",
     ],
     setup_requires=[
         "nose>=1.3.7",
