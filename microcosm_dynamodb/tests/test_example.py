@@ -13,18 +13,22 @@ from hamcrest import (
 from nose.plugins.attrib import attr
 
 from microcosm.api import create_object_graph
-from microcosm_dynamodb.errors import (
-    ModelNotFoundError,
-)
-from microcosm_dynamodb.example import Company
+from microcosm_dynamodb.errors import ModelNotFoundError
 from microcosm_dynamodb.operations import recreate_all
+from microcosm_dynamodb.tests.example import Company
 
 
 @attr('aws')
 class TestCompany(object):
 
     def setup(self):
-        self.graph = create_object_graph(name="example", testing=True, import_name="microcosm_dynamodb")
+        self.graph = create_object_graph(
+            name="example",
+            # NB: testing will use the MockEngine; toggle to test against a real DynamoDB, but
+            # be forewarned that recreating tables will be very slow.
+            testing=True,
+            import_name="microcosm_dynamodb",
+        )
         self.company_store = self.graph.company_store
 
         recreate_all(self.graph)

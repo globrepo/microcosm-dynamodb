@@ -44,7 +44,9 @@ To change the database region:
 
 ## Test Setup
 
-Tests (and automated builds) act as the "example" microservice and will by default use a dedicated namespace, prefixing all created Table names with 'test'.
+Tests (and automated builds) will use a `MockEngine`. Tests can also be run using a real DynamoDB (using the `test-` namespace).
+
+To enable real tests, modify the appropriate unit test (e.g. `test_example.py`) to configure the graph with `testing=False`. in this case:
 
 To run all tests that do not involve actually hitting AWS APIs, you can exclude tests using the 'aws' tag:
 
