@@ -27,8 +27,9 @@ setup(
     zip_safe=False,
     install_requires=[
         "boto3>=1.4.0",
+        "credstash>=1.11.0",
         "flywheel>=0.5.0",
-        "microcosm>=0.11.0",
+        "microcosm>=0.12.0",
         "microcosm-logging>-0.9.3",
     ],
     setup_requires=[
@@ -37,6 +38,9 @@ setup(
     dependency_links=[
     ],
     entry_points={
+        "console_scripts": [
+            "create_config_table = microcosm_dynamodb.loaders.operations:create_config_table",
+        ],
         "microcosm.factories": [
             "dynamodb = microcosm_dynamodb.factories:configure_flywheel_engine",
         ],
