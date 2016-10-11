@@ -5,8 +5,11 @@ Microcosm compatible configuration loader using DynamoDB.
 from abc import ABCMeta, abstractmethod, abstractproperty
 from getpass import getuser
 from six import string_types
+from warnings import warn
 
+from botocore.exceptions import ClientError
 from boto3 import Session
+from boto3.dynamodb.conditions import Attr
 from credstash import paddedInt
 
 from microcosm.loaders import expand_config
@@ -44,14 +47,14 @@ class DynamoDBLoader(object):
         self.profile_name = profile_name
         self.region = region
 
-    def __call__(self, metadata):
+    def __call__(self, metadata, version=None):
         """
         Build configuration from metadata.
 
         """
         service = metadata if isinstance(metadata, string_types) else metadata.name
         return expand_config(
-            dict(self.items(service)),
+            dict(self.items(service, version=version)),
             separator=self.separator,
         )
 
@@ -82,11 +85,12 @@ class DynamoDBLoader(object):
         """
         pass
 
-    def all(self, service):
+    def all(self, service, version=None):
         """
         Query all service config rows.
 
         """
+        # request all fields; since `key` is reserved, we have to use a substitution
         field_names = [
             "#k" if field == "key" else field
             for field in self.value_type._fields
@@ -99,14 +103,31 @@ class DynamoDBLoader(object):
         if "#k" in field_names:
             attribute_names["#k"] = "key"
 
-        return self._table(service).scan(
-            Select="SPECIFIC_ATTRIBUTES",
-            ProjectionExpression=", ".join(["#n"] + field_names),
-            ConsistentRead=True,
-            ExpressionAttributeNames=attribute_names,
-        )
+        # filter by version, if any
+        if version is not None:
+            filter_expression = Attr("version").eq(version)
+        else:
+            filter_expression = None
 
-    def items(self, service):
+        try:
+            return self._table(service).scan(
+                Select="SPECIFIC_ATTRIBUTES",
+                ProjectionExpression=", ".join(["#n"] + field_names),
+                FilterExpression=filter_expression,
+                ConsistentRead=True,
+                ExpressionAttributeNames=attribute_names,
+            )
+        except ClientError as error:
+            # we probably don't have logging configured yet, so use `warnings`
+            warn(
+                "Unable to query configuration from {}: {}".format(
+                    table_name(self.prefix, service),
+                    error.message,
+                ),
+            )
+            raise
+
+    def items(self, service, version=None):
         """
         Generate configuration key rows as items.
 
@@ -117,7 +138,7 @@ class DynamoDBLoader(object):
                 for name, value in row.items()
                 if name not in ("name", "version")
             })))
-            for row in self.all(service)["Items"]
+            for row in self.all(service, version)["Items"]
         ]
 
     def put(self, service, name, value, version=None):
