@@ -5,7 +5,8 @@ Load configuration according to conventions:
 
     The key is expected to be an alias named <environment>-conf.
 
- 2. Load versioned configuration based on the `MICROCOSM_CONFIG_VERSION` environment variable.
+ 2. Load versioned configuration based on the `MICROCOSM_CONFIG_VERSION` and
+    `MICROCOSM_ENVIRONMENT` environment variables.
 
     If present, only the given config version is used; otherwise, dynamodb db loading is skipped.
 
@@ -16,15 +17,23 @@ Load configuration according to conventions:
 from os import environ
 
 from credstash import paddedInt
+from microcosm.loaders import load_from_dict
 
 from microcosm_dynamodb.loaders.encrypted import EncryptedDynamoDBLoader
 
 
-def load_from_dynamodb(environment):
+def load_from_dynamodb(environment=None):
     """
     Fluent shorthand for the whole brevity thing.
 
     """
+    if environment is None:
+        try:
+            environment = environ["MICROCOSM_ENVIRONMENT"]
+        except KeyError:
+            # noop
+            return load_from_dict(dict())
+
     return VersionedEncryptedDynamoDBLoader(environment)
 
 
