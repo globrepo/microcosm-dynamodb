@@ -26,7 +26,7 @@ SIMPLE_ITEM = dict(
 
 
 NESTED_ITEM = dict(
-    name="bar.baz",
+    name="bar__baz",
     dummy="foo",
     version="0000000000000000001",
 )
