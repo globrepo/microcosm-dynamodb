@@ -34,7 +34,7 @@ class DynamoDBLoader(object):
 
     def __init__(self,
                  prefix=None,
-                 separator=".",
+                 separator="__",
                  profile_name=None,
                  region=None):
         """
