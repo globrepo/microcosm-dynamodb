@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 project = "microcosm-dynamodb"
-version = "0.14.0"
+version = "0.14.1"
 
 setup(
     name=project,
@@ -28,6 +28,8 @@ setup(
     install_requires=[
         "boto3>=1.4.0",
         "credstash>=1.11.0",
+        # XXX credstash changed to depend on cryptography, not PyCrypto; we haven't migrated yet
+        "pycrypto>=2.6.1",
         "flywheel>=0.5.0",
         "microcosm>=0.12.0",
         "microcosm-logging>-0.9.3",
