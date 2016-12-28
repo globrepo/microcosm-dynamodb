@@ -7,7 +7,6 @@ but currently prevented from full reuse because of difficulty configurating cred
 See: https://github.com/fugue/credstash/blob/master/credstash.py
 
 """
-from base64 import b64decode, b64encode
 from collections import namedtuple
 
 from boto3 import Session
