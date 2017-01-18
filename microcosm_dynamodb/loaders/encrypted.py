@@ -55,7 +55,7 @@ class EncryptedDynamoDBLoader(DynamoDBLoader):
             context = {}
         session = Session(profile_name=self.profile_name)
         kms = session.client('kms', region_name=self.region)
-        key_service = KeyService(kms, None, context)
+        key_service = KeyService(kms, self.kms_key, context)
         return open_aes_ctr_legacy(
             key_service,
             dict(
@@ -70,7 +70,7 @@ class EncryptedDynamoDBLoader(DynamoDBLoader):
             context = {}
         session = Session(profile_name=self.profile_name)
         kms = session.client('kms', region_name=self.region)
-        key_service = KeyService(kms, None, context)
+        key_service = KeyService(kms, self.kms_key, context)
         sealed = seal_aes_ctr_legacy(
             key_service,
             plaintext,
