@@ -122,7 +122,7 @@ class DynamoDBLoader(object):
             warn(
                 "Unable to query configuration from {}: {}".format(
                     table_name(self.prefix, service),
-                    error.message,
+                    str(error),
                 ),
             )
             raise
