@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 project = "microcosm-dynamodb"
-version = "0.14.3"
+version = "0.14.4"
 
 setup(
     name=project,
