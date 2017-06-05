@@ -12,6 +12,7 @@ from boto3 import Session
 from boto3.dynamodb.conditions import Attr
 from credstash import paddedInt
 
+from microcosm.configuration import Configuration
 from microcosm.loaders import expand_config
 
 
@@ -53,9 +54,11 @@ class DynamoDBLoader(object):
 
         """
         service = metadata if isinstance(metadata, string_types) else metadata.name
-        return expand_config(
-            dict(self.items(service, version=version)),
-            separator=self.separator,
+        return Configuration(
+            dct=expand_config(
+                dict(self.items(service, version=version)),
+                separator=self.separator,
+            ),
         )
 
     @abstractproperty
