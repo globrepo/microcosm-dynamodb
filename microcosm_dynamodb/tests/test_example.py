@@ -19,7 +19,7 @@ from microcosm_dynamodb.tests.example import Company
 
 
 @attr('aws')
-class TestCompany(object):
+class TestCompany:
 
     def setup(self):
         self.graph = create_object_graph(

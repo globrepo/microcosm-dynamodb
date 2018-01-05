@@ -4,7 +4,6 @@ Microcosm compatible configuration loader using DynamoDB.
 """
 from abc import ABCMeta, abstractmethod, abstractproperty
 from getpass import getuser
-from six import string_types
 from warnings import warn
 
 from botocore.exceptions import ClientError
@@ -24,7 +23,7 @@ def table_name(prefix, service):
     return "{}-{}-config".format(prefix, service)
 
 
-class DynamoDBLoader(object):
+class DynamoDBLoader:
     """
     Load config data from a DynamoDB table, assuming one table per service.
 
@@ -53,7 +52,7 @@ class DynamoDBLoader(object):
         Build configuration from metadata.
 
         """
-        service = metadata if isinstance(metadata, string_types) else metadata.name
+        service = metadata if isinstance(metadata, str) else metadata.name
         return Configuration(
             dct=expand_config(
                 dict(self.items(service, version=version)),
