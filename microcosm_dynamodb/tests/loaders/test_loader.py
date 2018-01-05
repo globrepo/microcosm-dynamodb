@@ -51,7 +51,7 @@ class DummyDynamoDBLoader(DynamoDBLoader):
         return self.value_type(value)
 
 
-class TestDynamoDBLoader(object):
+class TestDynamoDBLoader:
 
     def setup(self):
         self.loader = DummyDynamoDBLoader()

@@ -5,7 +5,7 @@ Simple in-memory Engine mock.
 from microcosm_dynamodb.errors import ModelNotFoundError
 
 
-class MockQuery(object):
+class MockQuery:
     def __init__(self, engine, model_class):
         self._engine = engine
         self._model_class = model_class
@@ -62,7 +62,7 @@ class MockQuery(object):
         raise ModelNotFoundError
 
 
-class MockEngine(object):
+class MockEngine:
     def __init__(self, namespace):
         self.namespace = namespace
         self.region = None

@@ -2,8 +2,6 @@
 Abstraction layer for persistence operations.
 
 """
-from six import string_types
-
 from microcosm_logging.decorators import logger
 
 from microcosm_dynamodb.errors import ModelNotFoundError
@@ -11,7 +9,7 @@ from microcosm_dynamodb.identifiers import new_object_id, normalize_id
 
 
 @logger
-class Store(object):
+class Store:
 
     def __init__(self, graph, model_class):
         self.graph = graph
@@ -159,7 +157,7 @@ class Store(object):
         """
         identifiers = normalize_id(identifiers)
 
-        if isinstance(identifiers, string_types):
+        if isinstance(identifiers, str):
             # If given as single id, convert to named argument using default 'id' fieldname
             identifiers = dict(
                 id=identifiers,

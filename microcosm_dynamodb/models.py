@@ -22,7 +22,7 @@ class Model(BaseModel):
         super(Model, self).__init__(id=id, **kwargs)
 
 
-class IdentityMixin(object):
+class IdentityMixin:
     """
     Define model identity in terms of members.
 
@@ -40,7 +40,7 @@ class IdentityMixin(object):
         return hash(self.__dict__)
 
 
-class SmartMixin(object):
+class SmartMixin:
     """
     Define a model with short cuts for CRUD operations against its `Store`.
 
