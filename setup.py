@@ -29,7 +29,7 @@ setup(
         "boto3>=1.4.0",
         "credstash-any-crypto>=1.14.1",
         "flywheel>=0.5.0",
-        "microcosm>=2.0.0",
+        "microcosm>=2.1.0",
         "microcosm-logging>=1.0.0",
     ],
     setup_requires=[
